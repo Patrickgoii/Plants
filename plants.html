@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Мои растения</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{--bg1:#fff0f6;--bg2:#e9fbf1;--card:rgba(255,255,255,.8);--text:#2a1f2d;--mute:#8a7b8f;--pink:#ff5fa2;--green:#2fcf8e;--line:rgba(0,0,0,.07);--sh:0 8px 24px rgba(255,95,162,.16)}
+@media (prefers-color-scheme:dark){:root{--bg1:#1d1220;--bg2:#10201a;--card:rgba(48,34,54,.8);--text:#f6eaf3;--mute:#a894ad;--line:rgba(255,255,255,.09);--sh:0 8px 24px rgba(0,0,0,.35)}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{background:linear-gradient(160deg,var(--bg1),var(--bg2)) fixed;color:var(--text);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:calc(12px + env(safe-area-inset-top,0px)) 14px calc(24px + env(safe-area-inset-bottom,0px));overflow-x:hidden}
+button{font:inherit;color:inherit;border:0;cursor:pointer}
+.top{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.top svg{width:56px;height:56px;animation:wig 3s ease-in-out infinite;filter:drop-shadow(0 6px 8px rgba(255,95,162,.35))}
+.top h1{margin:0;font-size:24px;letter-spacing:-.5px}.top p{margin:0;color:var(--mute);font-size:13px}
+@keyframes wig{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(8deg) scale(1.06)}}
+@keyframes rise{from{opacity:0;transform:translateY(18px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes pop{from{opacity:0;transform:scale(.4)}to{opacity:1;transform:none}}
+#grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pc{background:var(--card);border-radius:22px;overflow:hidden;box-shadow:var(--sh);backdrop-filter:blur(10px);animation:rise .5s cubic-bezier(.2,.9,.3,1) both;animation-delay:calc(var(--i)*70ms);transition:transform .18s}
+.pc:active{transform:scale(.95)}
+.cv{aspect-ratio:1;background:linear-gradient(135deg,#ffd1e6,#c9f5df) center/cover;display:flex;align-items:center;justify-content:center;font-size:52px}
+.pi{padding:10px 12px}.pi b{display:block}.pi small{color:var(--mute)}
+.pc.add{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:170px;color:var(--pink);font-size:34px;border:2px dashed var(--pink);background:none;box-shadow:none}
+.pc.add small{font-size:13px}
+.det{position:fixed;inset:0;display:flex;flex-direction:column;background:linear-gradient(160deg,var(--bg1),var(--bg2));transform:translateY(100%);visibility:hidden;transition:transform .45s cubic-bezier(.2,.9,.3,1),visibility .45s;z-index:10}
+.det.open{transform:none;visibility:visible}
+.hero{height:190px;flex:none;background:linear-gradient(135deg,#ffd1e6,#c9f5df) center/cover;position:relative;display:flex;align-items:flex-end;padding:12px 14px}
+.hero:after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 40%,rgba(0,0,0,.55))}
+.hero>*{position:relative;z-index:1;color:#fff}
+.hero h2{margin:0;font-size:24px}.hero span{opacity:.85;font-size:13px}
+.back{position:absolute!important;top:calc(10px + env(safe-area-inset-top,0px));left:12px;width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,.35);font-size:22px;line-height:1}
+.tabs{display:flex;gap:6px;padding:10px 14px 0}
+.tabs button{flex:1;padding:9px;border-radius:14px;background:var(--card);color:var(--mute);transition:.25s}
+.tabs button.on{background:var(--pink);color:#fff;transform:scale(1.04)}
+#body{flex:1;overflow:auto;padding:12px 14px}
+.en{background:var(--card);border-radius:18px;padding:10px 12px;margin-bottom:10px;animation:rise .4s both;animation-delay:calc(var(--i)*50ms)}
+.ed{display:flex;justify-content:space-between;color:var(--mute);font-size:12px}
+.x{background:none;color:var(--mute);font-size:18px;padding:0 4px}
+.ch{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.chip{padding:4px 10px;border-radius:99px;background:#ffe0ee;color:#a3205b;font-size:13px;animation:pop .4s cubic-bezier(.3,1.6,.5,1) both;animation-delay:calc(var(--j)*80ms + 150ms)}
+.chip.water{background:#d9efff;color:#1b5f92}.chip.feed{background:#e5f7d4;color:#3d6d12}.chip.pest{background:#ffe9cf;color:#8a4b00}.chip.harv{background:#ffe0e0;color:#a32020}.chip.prune,.chip.repot{background:#efe3ff;color:#5b2d99}
+.en p{margin:0;color:var(--mute);font-size:13px}
+.empty{text-align:center;color:var(--mute);padding:30px 10px}
+.pg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pt{aspect-ratio:1;border-radius:16px;background:var(--card) center/cover;position:relative;overflow:hidden;animation:pop .4s both;display:flex;align-items:flex-end}
+.pt small{background:rgba(0,0,0,.5);color:#fff;width:100%;padding:2px 5px;font-size:10px}
+.pt.add{flex-direction:column;align-items:center;justify-content:center;font-size:26px;color:var(--pink);border:2px dashed var(--pink);background:none}
+.st{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.st div{background:var(--card);border-radius:16px;padding:10px 12px}.st b{display:block;font-size:20px}.st small{color:var(--mute)}
+.tip{background:var(--card);border-radius:16px;padding:10px 12px;margin-bottom:8px}.tip b{display:block;font-size:13px;color:var(--pink)}
+.danger{width:100%;margin-top:8px;padding:12px;border-radius:14px;background:none;color:#d64545}
+.bar{display:flex;gap:8px;padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));background:var(--card);backdrop-filter:blur(14px)}
+.bar input{flex:1;min-width:0;padding:11px 14px;border-radius:99px;border:1px solid var(--line);background:transparent;color:var(--text);font:inherit}
+.bar button{width:44px;height:44px;border-radius:50%;background:var(--pink);color:#fff;font-size:18px;transition:transform .15s}.bar button:active{transform:scale(.88)}
+#cam{background:var(--green)}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;z-index:30;opacity:0;visibility:hidden;transition:.3s}
+.modal.on{opacity:1;visibility:visible}
+.sheet{background:var(--bg1);width:100%;border-radius:24px 24px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));transform:translateY(40px);transition:.35s cubic-bezier(.2,.9,.3,1)}
+.modal.on .sheet{transform:none}
+.sheet h3{margin:0 0 10px}.sheet input{width:100%;padding:12px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--text);font:inherit}
+.tp{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}.tp button{padding:8px 12px;border-radius:99px;background:var(--card);transition:.2s}.tp button.on{background:var(--pink);color:#fff;transform:scale(1.06)}
+.go{width:100%;padding:13px;border-radius:14px;background:var(--pink);color:#fff;font-weight:600}
+#vw{position:fixed;inset:0;background:#000;z-index:40;display:flex;flex-direction:column;opacity:0;visibility:hidden;transition:.3s}
+#vw.on{opacity:1;visibility:visible}
+#vimg{flex:1;background:center/contain no-repeat}
+#vw .vb{display:flex;justify-content:space-between;align-items:center;padding:12px 16px calc(14px + env(safe-area-inset-bottom,0px));color:#fff}
+#vw button{background:rgba(255,255,255,.15);color:#fff;border-radius:99px;padding:10px 16px}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <svg viewBox="0 0 100 100"><polygon points="50,12 61.2,36.6 88,39.6 68.1,57.9 73.5,84.4 50,71 26.5,84.4 31.9,57.9 12,39.6 38.8,36.6" fill="#ff8fb8" stroke="#ff8fb8" stroke-width="9" stroke-linejoin="round"/><circle cx="41" cy="48" r="3.4" fill="#3a1630"/><circle cx="59" cy="48" r="3.4" fill="#3a1630"/><path d="M42 57Q50 65 58 57" stroke="#3a1630" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="35" cy="56" r="4" fill="#ff5fa2" opacity=".5"/><circle cx="65" cy="56" r="4" fill="#ff5fa2" opacity=".5"/></svg>
+  <div><h1>Мои растения</h1><p id="sub"></p></div>
+</div>
+<div id="grid"></div>
+
+<section class="det" id="det">
+  <div class="hero" id="hero"><button class="back" id="back">‹</button><div><h2 id="dn"></h2><span id="dt"></span></div></div>
+  <div class="tabs" id="tabs"><button data-t="log" class="on">Журнал</button><button data-t="ph">Фото</button><button data-t="info">Инфо</button></div>
+  <div id="body"></div>
+  <div class="bar"><button id="cam">📷</button><input id="txt" placeholder="Что сделал? Напр.: полил 300 мл в пн"><button id="send">➤</button></div>
+</section>
+
+<div class="modal" id="am"><div class="sheet"><h3>Новое растение</h3><input id="pn" placeholder="Название (например, Клубника у окна)"><div class="tp" id="tp"></div><button class="go" id="mk">Добавить</button></div></div>
+<div id="vw"><div id="vimg"></div><div class="vb"><button id="vp">‹</button><span id="vcap"></span><button id="vn">›</button></div><div class="vb" style="padding-top:0"><button id="vd">Удалить</button><button id="vc">Закрыть</button></div></div>
+<input type="file" id="file" accept="image/*" hidden>
+
+<script>
+const tg = window.Telegram && Telegram.WebApp;
+if (tg) { tg.ready(); tg.expand(); }
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const hap = () => { try { tg.HapticFeedback.impactOccurred('light'); } catch (e) {} };
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const askOk = (m, fn) => (tg && tg.showConfirm) ? tg.showConfirm(m, ok => ok && fn()) : (confirm(m) && fn());
+
+let S; try { S = JSON.parse(localStorage.getItem('plants-v1')); } catch (e) {}
+S = S || {plants:[], logs:{}, photos:[]};
+const save = () => { try { localStorage.setItem('plants-v1', JSON.stringify(S)); } catch (e) {} };
+
+// фото лежат в IndexedDB
+const idb = new Promise((res, rej) => { const r = indexedDB.open('plants', 1); r.onupgradeneeded = () => r.result.createObjectStore('p'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); });
+const tx = (m, f) => idb.then(d => new Promise((res, rej) => { const t = d.transaction('p', m), o = f(t.objectStore('p')); t.oncomplete = () => res(o.result); t.onerror = () => rej(t.error); }));
+const putB = (id, b) => tx('readwrite', s => s.put(b, id)), getB = id => tx('readonly', s => s.get(id)), delB = id => tx('readwrite', s => s.delete(id));
+const urls = {};
+async function url(id){ if (!urls[id]) { const b = await getB(id); urls[id] = b ? URL.createObjectURL(b) : ''; } return urls[id]; }
+function hydrate(){ document.querySelectorAll('[data-ph]').forEach(async el => { const u = await url(el.dataset.ph); if (u) el.style.backgroundImage = 'url("' + u + '")'; }); }
+async function shrink(f){ const b = await createImageBitmap(f), k = Math.min(1, 1000 / Math.max(b.width, b.height)), c = document.createElement('canvas'); c.width = b.width * k; c.height = b.height * k; c.getContext('2d').drawImage(b, 0, 0, c.width, c.height); return new Promise(r => c.toBlob(r, 'image/jpeg', .82)); }
+
+const TYPES = {
+'Клубника':{e:'🍓',t:['Умеренно, земля чуть влажная, без застоя воды.','10–12 часов света, зимой нужна лампа.','Раз в 10–14 дней комплексным удобрением для ягод.','18–22°C. Убирай усы и сухие листья.']},
+'Цитрусовые':{e:'🍋',t:['Когда верх земли подсох, отстоянной водой.','Яркий рассеянный свет, не любит сквозняки.','Раз в 2 недели весной и летом.','18–25°C. Не переставляй с места на место.']},
+'Арбуз':{e:'🍉',t:['Редко, но обильно, под корень.','Максимум солнца.','Раз в 2 недели.','22–28°C. Прищипывай плети, оставь 2–3 плода.']},
+'Томат':{e:'🍅',t:['Регулярно, под корень, не на листья.','Много света, 6+ часов солнца.','Раз в 10–14 дней, при цветении нужен калий.','20–26°C. Убирай пасынки.']},
+'Огурец':{e:'🥒',t:['Часто и тёплой водой, земля влажная.','Яркий свет без прямого жара.','Раз в 7–10 дней.','22–26°C. Нужна опора.']},
+'Перец':{e:'🌶️',t:['Умеренно, когда верх земли подсох.','Много света.','Раз в 2 недели.','22–27°C.']},
+'Зелень':{e:'🌿',t:['Часто, но понемногу.','Светлое место, зимой лампа.','Раз в 2–3 недели слабым раствором.','18–23°C. Срезай верхушки, чтобы куст ветвился.']},
+'Суккулент':{e:'🌵',t:['Редко, только когда земля сухая насквозь.','Много света.','Раз в месяц весной и летом.','18–28°C. Зимой почти не поливай.']},
+'Другое':{e:'🪴',t:['Когда верх земли подсох.','Рассеянный свет.','Раз в 2–3 недели в сезон.','18–24°C.']}
+};
+
+// «умный разбор» заметок
+const RULES = [
+['water','💧','Полив',/полил|полив|вод[аыуе]|водичк|намочил|опрыск/],
+['feed','🧪','Подкормка',/удобр|аз[оа]ф[оа]ск|нитрофоск|подкорм|кемир|гумат|биохумус|мочевин|селитр|аммиач/],
+['repot','🪴','Пересадка',/пересад|новый горшок/],
+['prune','✂️','Обрезка',/обрез|прищип|пасынк|подрезал|усы|усов/],
+['pest','🐛','Защита',/обработ|тля|тли|паутин|вредител|мучнист|фунгицид|инсектицид|грибок/],
+['harv','🧺','Урожай',/урожай|собрал|сорвал/],
+['obs','👀','Наблюдение',/цвет|бутон|завяз|вырос|всход|росток|пожелт|желт|жёлт|вял|лист/]
+];
+const FERT = /аз[оа]ф[оа]ск[а-яё]*|нитрофоск[а-яё]*|кемир[а-яё]*|гумат[а-яё]*|биохумус[а-яё]*|мочевин[а-яё]*|селитр[а-яё]*|аммиачн[а-яё]*/;
+const AMT = /(\d+(?:[.,]\d+)?)\s*(мл|литр[а-яё]*|л|грамм[а-яё]*|гр|г|капл[а-яё]*|шт[а-яё]*)(?![а-яё])/g;
+function parse(raw){
+  const t = raw.toLowerCase(), tags = [];
+  const ams = [...t.matchAll(AMT)].map(m => ({v:m[1].replace(',', '.'), u:/^мл/.test(m[2]) ? 'мл' : /^л/.test(m[2]) ? 'л' : /^г/.test(m[2]) ? 'г' : /^кап/.test(m[2]) ? 'кап.' : 'шт'}));
+  RULES.forEach(r => { if (r[3].test(t)) tags.push({k:r[0], i:r[1], l:r[2], v:''}); });
+  const w = tags.find(x => x.k === 'water');
+  if (w) { const a = ams.find(a => a.u === 'мл' || a.u === 'л'); if (a) { w.v = a.v + ' ' + a.u; ams.splice(ams.indexOf(a), 1); } }
+  const f = tags.find(x => x.k === 'feed');
+  if (f) { const n = (t.match(FERT) || [])[0], a = ams[0]; f.v = [n && n[0].toUpperCase() + n.slice(1), a && a.v + ' ' + a.u].filter(Boolean).join(' · '); }
+  const d = new Date(); d.setHours(12, 0, 0, 0);
+  if (/позавчера/.test(t)) d.setDate(d.getDate() - 2);
+  else if (/вчера/.test(t)) d.setDate(d.getDate() - 1);
+  else {
+    const m = /(понедельник|вторник|сред[ауы]|четверг|пятниц[ауы]|суббот[ауы]|воскресень[ея])/.exec(t) || /(?:^|\s)(пн|вт|ср|чт|пт|сб|вс)(?![а-яё])/.exec(t);
+    if (m) { const i = {'пон':1,'вто':2,'сре':3,'чет':4,'пят':5,'суб':6,'вос':0,'пн':1,'вт':2,'ср':3,'чт':4,'пт':5,'сб':6,'вс':0}[m[1].slice(0, 3)]; d.setDate(d.getDate() - (d.getDay() - i + 7) % 7); }
+  }
+  return {id:uid(), t:d.getTime(), text:raw, tags:tags.length ? tags : [{k:'note', i:'📝', l:'Заметка', v:''}]};
+}
+
+const DAY = 864e5;
+const dd = t => { const a = new Date(t), b = new Date(); a.setHours(0,0,0,0); b.setHours(0,0,0,0); return Math.round((b - a) / DAY); };
+const dlabel = t => { const n = dd(t); return n === 0 ? 'Сегодня' : n === 1 ? 'Вчера' : new Date(t).toLocaleDateString('ru', {weekday:'short', day:'numeric', month:'short'}); };
+const ago = n => n === 0 ? 'сегодня' : n === 1 ? 'вчера' : n + ' дн. назад';
+const logs = id => S.logs[id] || (S.logs[id] = []);
+const last = (id, k) => { const l = logs(id).filter(x => x.tags.some(g => g.k === k)).sort((a, b) => b.t - a.t)[0]; return l ? dd(l.t) : null; };
+const photos = id => S.photos.filter(x => x.pid === id).sort((a, b) => a.t - b.t);
+const latest = id => photos(id).pop();
+
+function home(){
+  $('sub').textContent = S.plants.length ? 'Растений: ' + S.plants.length : 'Пока пусто, добавь первое';
+  $('grid').innerHTML = S.plants.map((p, i) => {
+    const ph = latest(p.id), w = last(p.id, 'water');
+    return '<div class="pc" data-id="' + p.id + '" style="--i:' + i + '"><div class="cv"' + (ph ? ' data-ph="' + ph.id + '"' : '') + '>' + (ph ? '' : TYPES[p.type].e) + '</div><div class="pi"><b>' + esc(p.name) + '</b><small>' + (w === null ? 'поливов нет' : '💧 ' + ago(w)) + '</small></div></div>';
+  }).join('') + '<div class="pc add" id="addc" style="--i:' + S.plants.length + '">＋<small>Добавить</small></div>';
+  hydrate();
+}
+
+let cur = null, tab = 'log';
+function openP(id){ cur = id; tab = 'log'; $('det').classList.add('open'); if (tg) tg.BackButton.show(); renderDet(); }
+function closeP(){ cur = null; $('det').classList.remove('open'); if (tg) tg.BackButton.hide(); home(); }
+
+function renderDet(){
+  const p = S.plants.find(x => x.id === cur); if (!p) return;
+  const ph = latest(cur), h = $('hero');
+  h.style.backgroundImage = ''; if (ph) { h.dataset.ph = ph.id; } else delete h.dataset.ph;
+  $('dn').textContent = TYPES[p.type].e + ' ' + p.name;
+  $('dt').textContent = p.type + ' · ' + (dd(p.created) + 1) + '-й день';
+  document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.t === tab));
+  let html = '';
+  if (tab === 'log') {
+    const L = logs(cur).slice().sort((a, b) => b.t - a.t);
+    html = L.length ? L.map((e, i) => '<div class="en" style="--i:' + i + '"><div class="ed">' + dlabel(e.t) + '<button class="x" data-del="' + e.id + '">×</button></div><div class="ch">' +
+      e.tags.map((g, j) => '<span class="chip ' + g.k + '" style="--j:' + j + '">' + g.i + ' ' + g.l + (g.v ? ' · ' + esc(g.v) : '') + '</span>').join('') + '</div><p>' + esc(e.text) + '</p></div>').join('')
+      : '<div class="empty">Напиши внизу, что сделал, и я сам всё разложу.<br>Например: «полил 300 мл, азофоска, вчера»</div>';
+  } else if (tab === 'ph') {
+    const P = photos(cur), t0 = P[0] && P[0].t;
+    html = '<div class="pg"><div class="pt add" id="addph">📷<small style="background:none;color:var(--mute);text-align:center">Добавить фото</small></div>' +
+      P.map((x, i) => '<div class="pt" data-v="' + x.id + '" data-ph="' + x.id + '"><small>' + dlabel(x.t) + (i ? ' · день ' + (dd(t0) - dd(x.t) + 1) : '') + '</small></div>').join('') + '</div>';
+  } else {
+    const T = TYPES[p.type].t, w = last(cur, 'water'), f = last(cur, 'feed');
+    html = '<div class="st"><div><b>' + (dd(p.created) + 1) + '</b><small>дней вместе</small></div><div><b>' + logs(cur).filter(e => e.tags.some(g => g.k === 'water')).length + '</b><small>поливов</small></div><div><b>' + (w === null ? '—' : ago(w)) + '</b><small>последний полив</small></div><div><b>' + (f === null ? '—' : ago(f)) + '</b><small>подкормка</small></div></div>' +
+      [['💧 Полив', T[0]], ['☀️ Свет', T[1]], ['🧪 Подкормка', T[2]], ['🌡️ Температура', T[3]]].map(r => '<div class="tip"><b>' + r[0] + '</b>' + r[1] + '</div>').join('') +
+      '<button class="danger" id="delp">Удалить растение</button>';
+  }
+  $('body').innerHTML = html; hydrate();
+}
+
+$('grid').addEventListener('click', e => {
+  if (e.target.closest('#addc')) { $('pn').value = ''; $('am').classList.add('on'); return; }
+  const c = e.target.closest('.pc[data-id]'); if (c) { hap(); openP(c.dataset.id); }
+});
+$('back').onclick = closeP;
+if (tg) tg.BackButton.onClick(() => $('vw').classList.contains('on') ? closeV() : closeP());
+$('tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b) { tab = b.dataset.t; renderDet(); } });
+
+$('body').addEventListener('click', e => {
+  const d = e.target.closest('[data-del]');
+  if (d) { S.logs[cur] = logs(cur).filter(x => x.id !== d.dataset.del); save(); renderDet(); return; }
+  if (e.target.closest('#addph')) { $('file').click(); return; }
+  const v = e.target.closest('[data-v]'); if (v) { vi = photos(cur).map(x => x.id); vx = vi.indexOf(v.dataset.v); showV(); $('vw').classList.add('on'); return; }
+  if (e.target.closest('#delp')) askOk('Удалить растение вместе с журналом и фото?', () => {
+    photos(cur).forEach(x => delB(x.id)); S.photos = S.photos.filter(x => x.pid !== cur); delete S.logs[cur];
+    S.plants = S.plants.filter(x => x.id !== cur); save(); closeP();
+  });
+});
+
+$('send').onclick = () => {
+  const v = $('txt').value.trim(); if (!v || !cur) return;
+  logs(cur).push(parse(v)); $('txt').value = ''; save(); tab = 'log'; hap(); renderDet();
+};
+$('txt').addEventListener('keydown', e => { if (e.key === 'Enter') $('send').click(); });
+$('cam').onclick = () => $('file').click();
+$('file').onchange = async () => {
+  const f = $('file').files[0]; $('file').value = ''; if (!f || !cur) return;
+  try { const id = uid(); await putB(id, await shrink(f)); S.photos.push({id, pid:cur, t:Date.now()}); save(); tab = 'ph'; hap(); renderDet(); }
+  catch (e) { alert('Не получилось сохранить фото'); }
+};
+
+let vi = [], vx = 0;
+function showV(){ const id = vi[vx], x = S.photos.find(p => p.id === id); url(id).then(u => $('vimg').style.backgroundImage = 'url("' + u + '")'); $('vcap').textContent = dlabel(x.t) + ' · ' + (vx + 1) + '/' + vi.length; }
+function closeV(){ $('vw').classList.remove('on'); renderDet(); }
+$('vp').onclick = () => { vx = (vx - 1 + vi.length) % vi.length; showV(); };
+$('vn').onclick = () => { vx = (vx + 1) % vi.length; showV(); };
+$('vc').onclick = closeV;
+$('vd').onclick = () => askOk('Удалить это фото?', () => {
+  const id = vi[vx]; delB(id); delete urls[id]; S.photos = S.photos.filter(p => p.id !== id); save(); vi.splice(vx, 1);
+  if (!vi.length) closeV(); else { vx = Math.min(vx, vi.length - 1); showV(); }
+});
+let sx = 0;
+$('vimg').addEventListener('touchstart', e => { sx = e.touches[0].clientX; });
+$('vimg').addEventListener('touchend', e => { const d = e.changedTouches[0].clientX - sx; if (Math.abs(d) > 50) (d < 0 ? $('vn') : $('vp')).click(); });
+
+let selT = 'Клубника';
+$('tp').innerHTML = Object.keys(TYPES).map(k => '<button data-k="' + k + '"' + (k === selT ? ' class="on"' : '') + '>' + TYPES[k].e + ' ' + k + '</button>').join('');
+$('tp').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; selT = b.dataset.k; document.querySelectorAll('#tp button').forEach(x => x.classList.toggle('on', x === b)); });
+$('am').addEventListener('click', e => { if (e.target === $('am')) $('am').classList.remove('on'); });
+$('mk').onclick = () => {
+  const p = {id:uid(), name:$('pn').value.trim() || selT, type:selT, created:Date.now()};
+  S.plants.push(p); save(); $('am').classList.remove('on'); home(); openP(p.id);
+};
+
+home();
+</script>
+</body>
+</html>
